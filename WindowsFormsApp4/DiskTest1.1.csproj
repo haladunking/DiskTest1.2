@@ -56,6 +56,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Blog_DiskSetting.cs" />
     <Compile Include="DiskSetting.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -63,12 +64,6 @@
       <DependentUpon>DiskSetting.cs</DependentUpon>
     </Compile>
     <Compile Include="DriverLoader.cs" />
-    <Compile Include="Form3.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form3.Designer.cs">
-      <DependentUpon>Form3.cs</DependentUpon>
-    </Compile>
     <Compile Include="Disk.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -133,9 +128,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Errors.resx">
       <DependentUpon>Errors.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Form3.resx">
-      <DependentUpon>Form3.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Form2.resx">
       <DependentUpon>Form2.cs</DependentUpon>

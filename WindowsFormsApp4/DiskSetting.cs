@@ -15,47 +15,129 @@ namespace DiskTest11
 {
     public delegate void WriteBlockCompleteHandler(double speed);
     public delegate void ReadBlockComleteHandler(double speed);
+    public delegate void NotifyEventHandler(int i,double speed,double written_MB,string now_time);//进度条
+    public delegate void SwitchEventHandler(int i);//切换页面
+    public delegate void LogEventHandler(string s);//日志
+    public delegate void StartTimeEventHandler(string s);//日志
     public partial class DiskSetting : Sunny.UI.UIPage
     {
         private const int DEAFAUT_BLOCKSIZE = 512;
-        public Disk[] Ed = new Disk[3]; //创建用户控件一变量
-        //public Log lg = new Log();
+
+        /// <summary>
+        /// 委托事件的定义
+        /// </summary>
+        public NotifyEventHandler NotifyEvent;//进度条,速度等信息
+        public SwitchEventHandler SwitchEvent;//切换界面
+        public LogEventHandler LogEvent;//日志打印
+        public StartTimeEventHandler StartTimeEvent;//传递开始时间
+
+        public Disk[] Ed = new Disk[3]; //创建用户控件，显示硬盘的控件
+
         ArrayList Disk_Informaion_List = new ArrayList();
         ArrayList Disk_Driver_List = new ArrayList();
         ArrayList Disk_Choose_Information = new ArrayList();
         public WriteBlockCompleteHandler GetWriteSpeed;
         public ReadBlockComleteHandler GetReadSpeed;
+        /// <summary>
+        /// 测试数组
+        /// </summary>
         private byte[] TestArray;
         private byte[] CompareArray;
 
-        public ArrayList returnValue_List = new ArrayList();
-        //public ArrayList nc_format_info
-        //{
-        //    get { return this.returnValue_List; }
-        //    set { this.returnValue_List = value; }
-        //}
-        void frm_TransfEvent(ArrayList value)
+        public ArrayList Disk_Information_List = new ArrayList();
+
+        void Get_Disk_Information_Event(ArrayList value)
         {
-            returnValue_List = value;
+            Disk_Information_List = value;
         }
         public DiskSetting()
         {
             InitializeComponent();
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            //设定字体大小为12px      
             Init_Disk_Information();
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;            
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(134)));
             dataGridView1.Rows.Add();
             dataGridView1.Rows.Add();
             Ed[0] = new Disk();
             Ed[1] = new Disk();
             Ed[2] = new Disk();
-            Ed[0].TransfEvent += frm_TransfEvent;
+            Ed[0].TransfEvent += Get_Disk_Information_Event;
             Ed[0].Show();
-            //lg.Show();
-            //panel1.Controls.Add(lg);
             panel1.Controls.Add(Ed[0]);
         }
+        //增添Notify观察者对象
+        public void AddNotifyObserver(NotifyEventHandler observer)
+        {
+            NotifyEvent += observer;
+        }
+        public void RemoteNotifyObserver(NotifyEventHandler observer)
+        {
+            NotifyEvent -= observer;
+        }
+        //增添Switch观察者对象
+        public void AddSwitchObserver(SwitchEventHandler observer)
+        {
+            SwitchEvent += observer;
+        }
+        public void RemoteSwitchObserver(SwitchEventHandler observer)
+        {
+            SwitchEvent -= observer;
+        }
+
+        public void AddLogObserver(LogEventHandler observer)
+        {
+            LogEvent += observer;
+        }
+        public void RemoteLogObserver(LogEventHandler observer)
+        {
+            LogEvent -= observer;
+        }
+
+        public void AddStartTimeObserver(StartTimeEventHandler observer)
+        {
+            StartTimeEvent += observer;
+        }
+        public void RemoteStartTimeObserver(StartTimeEventHandler observer)
+        {
+            StartTimeEvent -= observer;
+        }
+
+        /// <summary>
+        /// 广播速度，已读写量等信息，事件的具体实现，将这个组件的信息传给所有的观察者，让观察者执行相应的函数
+        /// </summary>
+        /// <param name="i"></param>
+        /// <param name="speed"></param>
+        /// <param name="wirtten_MB"></param>
+        /// <param name="now_time"></param>
+        public void PublishNotify(int i,double speed,double wirtten_MB,string now_time)
+        {
+            if (NotifyEvent != null)
+            {
+                NotifyEvent(i,speed,wirtten_MB,now_time);
+            }
+        }
+        public void SwitchPage(int i)
+        {
+            if (SwitchEvent != null)
+            {
+                SwitchEvent(i);
+            }
+        }
+        public void PrintLog(string s)
+        {
+            if(LogEvent!=null)
+            {
+                LogEvent(s);
+            }
+        }
+        public void PublishStartTime(string s)
+        {
+            if(StartTimeEvent!=null)
+            {
+                StartTimeEvent(s);
+            }
+        }
+
         private void Start_Test(Object obj)
         {
             if (Disk_Choose_Information.Count <= 0)
@@ -121,29 +203,29 @@ namespace DiskTest11
         {
             for (int i = 0; i < Disk_Driver_List.Count; i++)
             {
-                if ((bool)returnValue_List[0])
+                if ((bool)Disk_Information_List[0])
                 {
-                    if ((int)this.returnValue_List[1] == 0 || (int)this.returnValue_List[1] == 1 || (int)this.returnValue_List[1] == 2)
+                    if ((int)this.Disk_Information_List[1] == 0 || (int)this.Disk_Information_List[1] == 1 || (int)this.Disk_Information_List[1] == 2)
                     {
 
-                        bool testornot = (bool)this.returnValue_List[0];
-                        int testmode = (int)this.returnValue_List[1];
-                        long testtime = (long)this.returnValue_List[5];
-                        long testnum = (long)this.returnValue_List[7];
+                        bool testornot = (bool)this.Disk_Information_List[0];
+                        int testmode = (int)this.Disk_Information_List[1];
+                        long testtime = (long)this.Disk_Information_List[5];
+                        long testnum = (long)this.Disk_Information_List[7];
                         ChooseInformation choose = new ChooseInformation();
                         choose.SetRandomParameters(testornot, testmode, testtime, testnum);
                         Disk_Choose_Information.Add(choose);
                     }
                     else
                     {
-                        bool testornot = (bool)this.returnValue_List[0];
-                        int testmode = (int)this.returnValue_List[1];
-                        int testdatamode = (int)this.returnValue_List[2];
-                        long testtime = (long)this.returnValue_List[5];
-                        int testcircle = (int)this.returnValue_List[6];
-                        long testnum = (long)this.returnValue_List[7];
-                        int testpercent = (int)this.returnValue_List[3];
-                        int blocksize = (int)this.returnValue_List[4];
+                        bool testornot = (bool)this.Disk_Information_List[0];
+                        int testmode = (int)this.Disk_Information_List[1];
+                        int testdatamode = (int)this.Disk_Information_List[2];
+                        long testtime = (long)this.Disk_Information_List[5];
+                        int testcircle = (int)this.Disk_Information_List[6];
+                        long testnum = (long)this.Disk_Information_List[7];
+                        int testpercent = (int)this.Disk_Information_List[3];
+                        int blocksize = (int)this.Disk_Information_List[4];
                         ChooseInformation choose = new ChooseInformation();
                         choose.SetOrderParameters(testornot, testmode, testdatamode, testpercent, blocksize, testtime, testnum, testcircle);
                         Disk_Choose_Information.Add(choose);
@@ -151,11 +233,13 @@ namespace DiskTest11
                 }
             }
         }
-        
-
         public void OutWriteSpeed(double speed)
         {
             Console.WriteLine(speed);
+        }
+        public void ReturnPercent(int percent)
+        {
+
         }
         public void addColumn(string name, decimal size, long sectorsize)
         {
@@ -256,6 +340,7 @@ namespace DiskTest11
                 MessageBox.Show("未检测到设备！");
                 return;
             }
+            block_size = 2 * 1024 * 50;
             DriverLoader driver = (DriverLoader)Disk_Driver_List[driver_index];
             TestArray = new byte[DEAFAUT_BLOCKSIZE * block_size];
             CompareArray = new byte[DEAFAUT_BLOCKSIZE * block_size];
@@ -265,21 +350,33 @@ namespace DiskTest11
             long speed_start = start_time;//测试读写速度
             long speed_end;
             long _MB_num = 0;
+            
             if (test_data_mode == 0 || test_data_mode == 1)
             {
                 Init_TestArray(block_size, test_data_mode);
-                for (long i = 0; i < actual_size; i++)
+                for (long i = 0; i < actual_size;)
                 {
+                    //由于最后一个块比较大，最后一个块判断不能执行之后，将会有大量的块无法执行。
+
                     driver.WritSector(TestArray, i, block_size);
                     speed_end = Environment.TickCount;
                     _MB_num += DEAFAUT_BLOCKSIZE * block_size;
-                    if (_MB_num % 1048576 == 0)//1MB
+                    if (_MB_num % (1048576 * 50) == 0)//
                     {
-                        GetWriteSpeed?.Invoke(((double)1000 / (double)(speed_end - speed_start)));
+                        double now_speed = ((double)(1000 * 50) / (double)(speed_end - speed_start));
+                        double now_MB = _MB_num / 1048576;
+                        string now_time = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+                        GetWriteSpeed?.Invoke(now_speed);
                         speed_start = speed_end;
+                        this.PublishNotify((int)(i*100/actual_size),now_speed,now_MB,now_time);
+                        //Console.WriteLine("顺序只写测试完成，测试了" + actual_size + "次未发生错误！");
                     }
+                    i += block_size;
+                    //这个i就是当前测得容量
                 }
+                this.PublishNotify(100,0,0, DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
                 Console.WriteLine("顺序只写测试完成，测试了" + actual_size + "次未发生错误！");
+                this.PrintLog("顺序只写测试完成，测试了" +actual_size + "次未发生错误！");
             }
             else if (test_data_mode == 2)
             {
@@ -295,7 +392,9 @@ namespace DiskTest11
             {
                 Console.WriteLine("测试模式不存在，请重新选择!");
             }
-
+            //driver.Close();
+            TestArray = null;
+            CompareArray = null;
         }
         public void OrderOnlyRead(int driver_index, int percent = 100, int test_data_mode = 0, int block_size = 1, int circle = 1)
         {
@@ -551,19 +650,19 @@ namespace DiskTest11
             {
                 case 0:
                     Ed[0].Show();
-                    Ed[0].TransfEvent += frm_TransfEvent;
+                    Ed[0].TransfEvent += Get_Disk_Information_Event;
                     panel1.Controls.Clear();
                     panel1.Controls.Add(Ed[0]);
                     break;
                 case 1:
                     Ed[1].Show();
-                    Ed[1].TransfEvent += frm_TransfEvent;
+                    Ed[1].TransfEvent += Get_Disk_Information_Event;
                     panel1.Controls.Clear();
                     panel1.Controls.Add(Ed[1]);
                     break;
                 case 2:
                     Ed[2].Show();
-                    Ed[1].TransfEvent += frm_TransfEvent;
+                    Ed[1].TransfEvent += Get_Disk_Information_Event;
                     panel1.Controls.Clear();
                     panel1.Controls.Add(Ed[2]);
                     break;
@@ -577,10 +676,9 @@ namespace DiskTest11
             Init_Test_Parameters();
             GetWriteSpeed = OutWriteSpeed;
             System.Threading.Thread thr = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(Start_Test));
-            //Start_Test();
             thr.Start();
-            //MessageBox.Show("开始测试");
-
+            this.SwitchPage(201);
+            this.PublishStartTime(DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
         }
     }
 }

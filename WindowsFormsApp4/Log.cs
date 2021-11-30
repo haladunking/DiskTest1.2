@@ -12,6 +12,7 @@ namespace DiskTest11
 {
     public partial class Log : Sunny.UI.UIPage
     {
+        private delegate void SetLogEvent(string s);
         public Log()
         {
             InitializeComponent();
@@ -21,6 +22,23 @@ namespace DiskTest11
 
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel, ((byte)(134)));
 
+        }
+        public void LogEvent(string s)
+        {
+            if(this.ActivityLogTextBox.InvokeRequired)
+            {
+                SetLogEvent le = new SetLogEvent(LogEvent);
+                this.Invoke(le, new object[] { s });
+                
+            }
+            else
+            {
+                setLogEvent(s);
+            }
+        }
+        public void setLogEvent(string s)
+        {
+            ActivityLogTextBox.AppendText(s+ "\r\n");
         }
     }
 }
