@@ -33,23 +33,17 @@ namespace DiskTest11
 
         public Disk[] Ed = new Disk[3]; //创建用户控件，显示硬盘的控件
 
-        ArrayList Disk_Informaion_List = new ArrayList();
-        ArrayList Disk_Driver_List = new ArrayList();
-        ArrayList Disk_Choose_Information = new ArrayList();
+        public ArrayList Disk_Informaion_List = new ArrayList();
+        public ArrayList Disk_Driver_List = new ArrayList();
+        public ArrayList Disk_Choose_Information = new ArrayList();
+        public ArrayList Disk_Information_List = new ArrayList();
         public WriteBlockCompleteHandler GetWriteSpeed;
         public ReadBlockComleteHandler GetReadSpeed;
         /// <summary>
         /// 测试数组
         /// </summary>
         private byte[] TestArray;
-        private byte[] CompareArray;
-
-        public ArrayList Disk_Information_List = new ArrayList();
-
-        void Get_Disk_Information_Event(ArrayList value)
-        {
-            Disk_Information_List = value;
-        }
+        private byte[] CompareArray;              
         public DiskSetting()
         {
             InitializeComponent();
@@ -137,7 +131,15 @@ namespace DiskTest11
                 StartTimeEvent(s);
             }
         }
-
+        /// <summary>
+        /// 从Disk.cs中获取测试的选项信息
+        /// </summary>
+        /// <param name="value"></param>
+        public void Get_Disk_Information_Event(ArrayList value)
+        {
+            Disk_Information_List = value;
+        }
+        
         private void Start_Test(Object obj)
         {
             if (Disk_Choose_Information.Count <= 0)
@@ -185,6 +187,25 @@ namespace DiskTest11
                 }
             }
         }
+        /// <summary>
+        /// 开始测试的点击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StartTest_Click(object sender, EventArgs e)
+        {
+
+            Init_Disk_Driver();
+            Init_Test_Parameters();
+            GetWriteSpeed = OutWriteSpeed;
+            System.Threading.Thread thr = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(Start_Test));
+            thr.Start();
+            this.SwitchPage(201);
+            this.PublishStartTime(DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
+        }
+        /// <summary>
+        /// 初始化读写测试IO--命名为Disk_Driver
+        /// </summary>
         public void Init_Disk_Driver()
         {
             if (Disk_Informaion_List.Count <= 0)
@@ -199,6 +220,9 @@ namespace DiskTest11
                 Disk_Driver_List.Add(driver);
             }
         }
+        /// <summary>
+        /// 初始化测试参数
+        /// </summary>
         private void Init_Test_Parameters()
         {
             for (int i = 0; i < Disk_Driver_List.Count; i++)
@@ -233,24 +257,9 @@ namespace DiskTest11
                 }
             }
         }
-        public void OutWriteSpeed(double speed)
-        {
-            Console.WriteLine(speed);
-        }
-        public void ReturnPercent(int percent)
-        {
-
-        }
-        public void addColumn(string name, decimal size, long sectorsize)
-        {
-            int index = this.dataGridView1.Rows.Add();
-            dataGridView1.Rows[index].Cells[0].Value = name;
-            dataGridView1.Rows[index].Cells[1].Value = size;
-            dataGridView1.Rows[index].Cells[2].Value = "";
-            dataGridView1.Rows[index].Cells[3].Value = sectorsize;
-            dataGridView1.Rows[index].Cells[4].Value = "512B";
-
-        }
+        /// <summary>
+        /// 获取硬盘信息的函数
+        /// </summary>
         public void Init_Disk_Information()
         {
             ManagementClass Diskobject = new ManagementClass("Win32_DiskDrive");//获取一个磁盘实例对象
@@ -288,6 +297,38 @@ namespace DiskTest11
                 MessageBox.Show("未检测到设备！");
             }
         }
+        /// <summary>
+        /// 输出当前的测试速度
+        /// </summary>
+        /// <param name="speed"></param>
+        public void OutWriteSpeed(double speed)
+        {
+            Console.WriteLine(speed);
+        }
+        /// <summary>
+        /// 在展示表格中添加一行信息
+        /// </summary>
+        /// <param name="name">硬盘的名字</param>
+        /// <param name="size">硬盘的大小</param>
+        /// <param name="sectorsize">扇区数</param>
+        public void addColumn(string name, decimal size, long sectorsize)
+        {
+            int index = this.dataGridView1.Rows.Add();
+            dataGridView1.Rows[index].Cells[0].Value = name;
+            dataGridView1.Rows[index].Cells[1].Value = size;
+            dataGridView1.Rows[index].Cells[2].Value = "";
+            dataGridView1.Rows[index].Cells[3].Value = sectorsize;
+            dataGridView1.Rows[index].Cells[4].Value = "512B";
+
+        }
+        /// <summary>
+        /// 顺序读写验证
+        /// </summary>
+        /// <param name="driver_index">读写流的编号</param>
+        /// <param name="percent">测试所占容量的百分比</param>
+        /// <param name="test_data_mode">测试数据模式</param>
+        /// <param name="block_size">块大小</param>
+        /// <param name="circle">测试循环</param>
         public void OrderWriteAndVerify(int driver_index, int percent = 100, int test_data_mode = 0, int block_size = 1, int circle = 1)
         {
             if (Disk_Driver_List.Count <= 0)
@@ -333,6 +374,14 @@ namespace DiskTest11
                 Console.WriteLine("测试模式不存在，请重新选择!");
             }
         }
+        /// <summary>
+        /// 顺序只写
+        /// </summary>
+        /// <param name="driver_index">读写流的编号</param>
+        /// <param name="percent">测试所占容量的百分比</param>
+        /// <param name="test_data_mode">测试数据模式</param>
+        /// <param name="block_size">块大小</param>
+        /// <param name="circle">测试循环</param>
         public void OrderOnlyWrite(int driver_index, int percent = 100, int test_data_mode = 0, int block_size = 1, int circle = 1)
         {
             if (Disk_Driver_List.Count <= 0)
@@ -396,6 +445,14 @@ namespace DiskTest11
             TestArray = null;
             CompareArray = null;
         }
+        /// <summary>
+        /// 顺序只读
+        /// </summary>
+        /// <param name="driver_index">读写流的编号</param>
+        /// <param name="percent">测试所占容量的百分比</param>
+        /// <param name="test_data_mode">测试数据模式</param>
+        /// <param name="block_size">块大小</param>
+        /// <param name="circle">测试循环</param>
         public void OrderOnlyRead(int driver_index, int percent = 100, int test_data_mode = 0, int block_size = 1, int circle = 1)
         {
             if (Disk_Driver_List.Count <= 0)
@@ -414,6 +471,13 @@ namespace DiskTest11
             Console.WriteLine("顺序只读测试完成，测试了" + actual_size + "次未发生错误！");
 
         }
+        /// <summary>
+        /// 随机读写验证
+        /// </summary>
+        /// <param name="driver_index">读写IO流的编号</param>
+        /// <param name="test_num">测试次数</param>
+        /// <param name="test_time">测试时间</param>
+        /// <param name="test_mode">测试模式--0代表全0,1代表全1，2随机数</param>
         public void RandomWriteAndVerify(int driver_index, long test_num = 0, long test_time = 0, int test_mode = 2)
         {
             if (Disk_Driver_List.Count <= 0)
@@ -492,6 +556,12 @@ namespace DiskTest11
                     Console.WriteLine("随机读写验证测试完成，测试了" + test_num + "次未发生错误！");
             }
         }
+        /// <summary>
+        /// 随机只读验证
+        /// </summary>
+        /// <param name="driver_index">读写IO流的编号--与硬盘对应</param>
+        /// <param name="test_num">测试次数</param>
+        /// <param name="test_time">测试时间</param>
         public void RandomOnlyRead(int driver_index, long test_num = 0, long test_time = 0)
         {
             if (Disk_Driver_List.Count <= 0)
@@ -534,6 +604,13 @@ namespace DiskTest11
                 Console.WriteLine("随机只读测试完成，测试了" + test_num + "次未发生错误！");
             }
         }
+        /// <summary>
+        /// 随机只写验证
+        /// </summary>
+        /// <param name="driver_index">读写IO流的编号--与硬盘对应</param>
+        /// <param name="test_num">测试次数</param>
+        /// <param name="test_time">测试时间</param>
+        /// <param name="test_mode">测试模式</param>
         public void RandomOnlyWrite(int driver_index, long test_num = 0, long test_time = 0, int test_mode = 2)
         {
             if (Disk_Driver_List.Count <= 0)
@@ -669,16 +746,6 @@ namespace DiskTest11
             }
         }
 
-        private void StartTest_Click(object sender, EventArgs e)
-        {
-
-            Init_Disk_Driver();
-            Init_Test_Parameters();
-            GetWriteSpeed = OutWriteSpeed;
-            System.Threading.Thread thr = new System.Threading.Thread(new System.Threading.ParameterizedThreadStart(Start_Test));
-            thr.Start();
-            this.SwitchPage(201);
-            this.PublishStartTime(DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss"));
-        }
+        
     }
 }
